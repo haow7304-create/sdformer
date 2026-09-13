@@ -86,6 +86,14 @@ if __name__ == '__main__':
     parser.add_argument('--learning_rate', type=float, default=0.0001, help='optimizer learning rate')
     parser.add_argument('--des', type=str, default='test', help='exp description')
     parser.add_argument('--loss', type=str, default='MSE', help='loss function')
+    parser.add_argument('--grouped_loss', action='store_true', default=False,
+                        help='use V2 indicator-balanced loss and distribution constraints')
+    parser.add_argument('--v2_preprocessor', type=str, default='',
+                        help='V2 preprocessor JSON; inferred beside data_path when omitted')
+    parser.add_argument('--distribution_constraint_weight', type=float, default=0.1,
+                        help='weight for V2 distribution sum/non-negative constraint')
+    parser.add_argument('--validity_loss_weight', type=float, default=0.25,
+                        help='weight for V2 distribution-validity auxiliary channels')
     parser.add_argument('--lradj', type=str, default='type1', help='adjust learning rate')
     parser.add_argument('--use_amp', action='store_true', help='use automatic mixed precision training', default=False)
     parser.add_argument('--use_norm', type=int, default=True, help='use norm and denorm')

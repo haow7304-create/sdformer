@@ -2,10 +2,12 @@ from data_provider.data_factory import data_provider
 from exp.exp_basic import Exp_Basic
 from utils.tools import EarlyStopping, adjust_learning_rate, visual
 from utils.metrics import metric
+from utils.grouped_forecast_loss import GroupedForecastLoss
 import torch
 import torch.nn as nn
 from torch import optim
 import os
+import json
 import time
 import warnings
 import numpy as np
@@ -39,10 +41,18 @@ class Exp_Long_Term_Forecast(Exp_Basic):
     #     return criterion
 
     def _select_criterion(self):
-        #criterion = SpectralPeakLoss(alpha=0.2, beta=0.2, k=5)
-        criterion = nn.MSELoss()
-        #criterion = NewMSELoss(alpha=0.5)
-        return criterion
+        if getattr(self.args, 'grouped_loss', False):
+            preprocessor_path = self.args.v2_preprocessor
+            if not preprocessor_path:
+                stem = os.path.splitext(self.args.data_path)[0]
+                preprocessor_path = os.path.join(
+                    self.args.root_path, stem + '.preprocessor.json')
+            return GroupedForecastLoss(
+                preprocessor_path,
+                distribution_constraint_weight=self.args.distribution_constraint_weight,
+                validity_loss_weight=self.args.validity_loss_weight,
+            ).to(self.device)
+        return nn.MSELoss().to(self.device)
 
     # def plot_attention(self, attn_weights, index, head_index=0):
     #     # Only plot if index is a multiple of 100
@@ -98,12 +108,8 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                 outputs = outputs[:, -self.args.pred_len:, f_dim:]
                 batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
 
-                pred = outputs.detach().cpu()
-                true = batch_y.detach().cpu()
-
-                loss = criterion(pred, true)
-
-                total_loss.append(loss)
+                loss = criterion(outputs, batch_y)
+                total_loss.append(loss.item())
         total_loss = np.average(total_loss)
         self.model.train()
         return total_loss
@@ -116,6 +122,8 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         path = os.path.join(self.args.checkpoints, setting)
         if not os.path.exists(path):
             os.makedirs(path)
+        with open(os.path.join(path, 'training_config.json'), 'w', encoding='utf-8') as handle:
+            json.dump(vars(self.args), handle, ensure_ascii=False, indent=2)
 
         time_now = time.time()
         training_start_time = time.time()  # Capture the training start time

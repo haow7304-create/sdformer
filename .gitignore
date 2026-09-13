@@ -1,0 +1,31 @@
+.DS_Store
+**/.DS_Store
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.codex_work/
+.vscode/
+.idea/
+
+# 数据
+dataset/*_raw_time_series_data.json
+dataset/processed/
+dataset/processed_v2/
+dataset/weather/
+
+# 模型和实验结果
+checkpoints/
+new_checkpoints/
+new_checkpoints_v2/
+results/
+test_results/
+logs/
+result_*.txt
+
+*.pth
+*.pt
+*.ckpt
+*.npy
+
+# 临时文档
+.~*

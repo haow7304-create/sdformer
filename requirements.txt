@@ -1,4 +1,5 @@
 einops==0.4.0
+fastapi>=0.100.0
 matplotlib==3.7.0
 numpy==1.23.5
 pandas==1.5.3
@@ -10,3 +11,4 @@ sktime==0.16.1
 sympy==1.11.1
 torch==1.7.1
 tqdm==4.64.1
+uvicorn>=0.20.0
